@@ -4,7 +4,7 @@ import streamlit as st
 import polars as pl
 import plotly.graph_objects as go
 
-from constants.drought import AGRI_MONTHS, STAGE_MARKERS
+from constants.precipitation import AGRI_MONTHS, STAGE_MARKERS
 from data_transformations.heat import calc_heat_wave_alerts
 
 params = st.query_params
