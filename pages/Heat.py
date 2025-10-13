@@ -118,7 +118,6 @@ if region_year.height > 0:
             alert_vals = threshold_df["alert_temp"]
             top_vals = [y_range[1]] * len(threshold_df)
             
-
             fig.add_trace(
                 go.Scatter(
                     name="Low temperature",
@@ -130,7 +129,7 @@ if region_year.height > 0:
                     showlegend=False
                 )
             )
-
+            
             fig.add_trace(
                 go.Scatter(
                     name="Warning threshold",

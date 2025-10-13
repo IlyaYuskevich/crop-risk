@@ -5,6 +5,9 @@ import fsspec
 from constants.drought import STAGE_MARKERS
 from constants.locations import LOCATIONS
 import plotly.graph_objects as go
+import polars as pl
+
+from constants.utils import stage_bands_daily
 
 BUCKET = "nala-crop-risks"
 ZARR   = "era5-drought/spei_1-3-6_2023-2025.zarr"
@@ -43,68 +46,48 @@ ts = pt.to_series()
 y_range = [-5, 5]
 fig = go.Figure()
 
-threshold_cols = {"low_temp", "warn_temp", "alert_temp"}
-# threshold_df = threshold_df.sort_values("dt")
-# x_vals = threshold_df["dt"]
-# low_vals = threshold_df["low_temp"]
-# warn_vals = threshold_df["warn_temp"]
-# alert_vals = threshold_df["alert_temp"]
-# top_vals = [y_range[1]] * len(threshold_df)
-        
+threshold_cols = ["dry_critical", "dry_warn", "wet_warn", "wet_critical"]
+threshold_cols.reverse()
+threshold_df = stage_bands_daily(ts.index, STAGE_MARKERS) 
 
-# fig.add_trace(
-#     go.Scatter(
-#         name="Low temperature",
-#         x=x_vals,
-#         y=low_vals,
-#         mode="lines",
-#         line=dict(color="rgba(46, 125, 50, 0.9)", dash="dot", width=1),
-#         hoverinfo="skip",
-#         showlegend=False
-#     )
-# )
+wide = (threshold_df
+        .pivot(index="time", on="metric", values="value")
+        .sort("time"))
 
-# fig.add_trace(
-#     go.Scatter(
-#         name="Warning threshold",
-#         x=x_vals,
-#         y=warn_vals,
-#         mode="lines",
-#         line=dict(color="rgba(255, 193, 7, 0.9)", dash="dot", width=1),
-#         fill="tonexty",
-#         fillcolor="rgba(109, 215, 193, 0.25)",
-#         hoverinfo="skip",
-#         showlegend=False
-#     )
-# )
+x = wide["time"].to_list()
+cols = set(wide.columns)
 
-# fig.add_trace(
-#     go.Scatter(
-#         name="Alert threshold",
-#         x=x_vals,
-#         y=alert_vals,
-#         mode="lines",
-#         line=dict(color="rgba(220, 53, 69, 0.9)", dash="dot", width=1),
-#         fill="tonexty",
-#         fillcolor="rgba(255, 193, 7, 0.25)",
-#         hoverinfo="skip",
-#         showlegend=False
-#     )
-# )
+def y(bound):
+    if isinstance(bound, (int, float)):  # constant baseline
+        return [float(bound)] * len(x)
+    if bound in cols:
+        return wide[bound].to_list()
+    return None  # missing metric -> skip band
 
-# fig.add_trace(
-#     go.Scatter(
-#         name="Extreme alert zone",
-#         x=x_vals,
-#         y=top_vals,
-#         mode="lines",
-#         line=dict(width=0),
-#         fill="tonexty",
-#         fillcolor="rgba(220, 53, 69, 0.20)",
-#         hoverinfo="skip",
-#         showlegend=False,
-#             )
-#         )
+# Band configuration (hashmap). Order matters for correct tonexty fills.
+BANDS = {
+    "dry_critical": {"lo": -5,            "hi": "dry_critical", "fill": "rgba(220, 53, 69, 0.25)", "line": "rgba(220, 53, 69, 0.9)"},
+    "dry_warn":     {"lo": "dry_critical","hi": "dry_warn",     "fill": "rgba(255, 193, 7, 0.20)", "line": "rgba(255, 193, 7, 0.9)"},
+    "suitable":     {"lo": "dry_warn",    "hi": "wet_warn",     "fill": "rgba(109, 215, 193, 0.25)", "line": "rgba(255, 193, 7, 0.9)"},
+    "wet_warn":     {"lo": "wet_warn",    "hi": "wet_critical", "fill": "rgba(255, 193, 7, 0.20)", "line": "rgba(220, 53, 69, 0.9)"},
+    "wet_critical": {"lo": "wet_critical","hi": 5,              "fill": "rgba(220, 53, 69, 0.20)", "line": None},
+}
+
+for name, cfg in BANDS.items():
+    ylo, yhi = y(cfg["lo"]), y(cfg["hi"])
+    if ylo is None or yhi is None:
+        continue
+    # lower (invisible) → upper (filled to previous)
+    fig.add_trace(go.Scatter(x=x, y=ylo, mode="lines",
+                             line=dict(width=0), hoverinfo="skip", showlegend=False))
+    line_style = dict(color=cfg["line"], width=1, dash="dot") if cfg.get("line") else dict(width=0)
+    fig.add_trace(go.Scatter(
+        name=name,
+        x=x, y=yhi, mode="lines",
+        line=line_style,
+        fill="tonexty", fillcolor=cfg["fill"],
+        hoverinfo="skip", showlegend=False
+    ))
 
 fig.add_trace(
     go.Scatter(

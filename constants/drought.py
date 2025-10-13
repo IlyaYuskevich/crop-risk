@@ -1,12 +1,13 @@
-AGRI_MONTHS = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8]
-
 STAGE_MARKERS = [
     {
         "label": "Seeding",
         "start_month": 9,
         "start_day": 1,
         "year_offset": -1,
-        "low_precip": 8,
+        "dry_warn": -0.4,
+        "dry_critical": -0.8,
+        "wet_warn": 0.6,
+        "wet_critical": 1,
         "color": "#6c757d",
     },
     {
@@ -14,7 +15,10 @@ STAGE_MARKERS = [
         "start_month": 12,
         "start_day": 1,
         "year_offset": -1,
-        "low_precip": 3,
+        "dry_warn": -0.8,
+        "dry_critical": -1.2,
+        "wet_warn": 1.0,
+        "wet_critical": 1.6,
         "color": "#6c757d",
     },
     {
@@ -22,7 +26,10 @@ STAGE_MARKERS = [
         "start_month": 2,
         "start_day": 1,
         "year_offset": 0,
-        "low_precip": 10,
+        "dry_warn": -0.5,
+        "dry_critical": -1.0,
+        "wet_warn": 0.8,
+        "wet_critical": 1.4,
         "color": "#6c757d",
     },
     {
@@ -30,7 +37,10 @@ STAGE_MARKERS = [
         "start_month": 4,
         "start_day": 1,
         "year_offset": 0,
-        "low_precip": 12,
+        "dry_warn": -0.3,
+        "dry_critical": -0.6,
+        "wet_warn": 0.8,
+        "wet_critical": 1.4,
         "color": "#6c757d",
     },
     {
@@ -38,7 +48,10 @@ STAGE_MARKERS = [
         "start_month": 5,
         "start_day": 1,
         "year_offset": 0,
-        "low_precip": 10,
+        "dry_warn": -0.5,
+        "dry_critical": -1.0,
+        "wet_warn": 0.8,
+        "wet_critical": 1.4,
         "color": "#6c757d",
     },
     {
@@ -46,7 +59,10 @@ STAGE_MARKERS = [
         "start_month": 7,
         "start_day": 1,
         "year_offset": 0,
-        "low_precip": 0,
+        "dry_warn": -1.0,
+        "dry_critical": -1.5,
+        "wet_warn": 0.6,
+        "wet_critical": 1.0,
         "color": "#6c757d",
     },
 ]

@@ -1,0 +1,64 @@
+import pandas as pd
+import polars as pl
+
+BASE_KEYS = {"label", "start_month", "start_day", "color"}
+
+def stage_bands_daily(time_coord, markers) -> pl.DataFrame:
+    """
+    Build a daily (1D) long-form frame of thresholds over [t0, t1] from stage markers.
+    - Generic: any threshold keys (e.g., dry/wet or temps) are detected automatically.
+    - No year offsets; uses actual calendar years from time_coord.
+    - No duplicate boundary points: one row per day per metric.
+    """
+    # Time window (normalize to dates)
+    t0 = pd.Timestamp(pd.to_datetime(time_coord.values[0])).normalize()
+    t1 = pd.Timestamp(pd.to_datetime(time_coord.values[-1])).normalize()
+
+    # Detect threshold keys (everything not in BASE_KEYS)
+    thresh_keys = sorted(set().union(*(set(m.keys()) for m in markers)) - BASE_KEYS)
+    if not thresh_keys:
+        return pl.DataFrame({"time": [], "stage": [], "metric": [], "value": []})
+
+    # Build stage starts for years spanning the window (pad by one year before to cover pre-t0 stage)
+    years = range(t0.year - 1, t1.year + 1 + 1)  # include t1.year+1 for the final boundary
+    starts = [(pd.Timestamp(y, m["start_month"], m["start_day"]), m)
+              for y in years for m in markers]
+    starts.sort(key=lambda x: x[0])
+
+    # Keep only intervals that might intersect [t0, t1]
+    # Build (start, end, marker) triples
+    intervals = []
+    for i, (s, m) in enumerate(starts[:-1]):
+        e = starts[i + 1][0]
+        if e <= t0 or s > t1:  # no overlap
+            continue
+        s_clip = max(s.normalize(), t0)
+        e_clip = min(e.normalize(), t1 + pd.Timedelta(days=1))  # exclusive end
+        if s_clip < e_clip:
+            intervals.append((s_clip, e_clip, m))
+
+    # Emit one row per DAY per metric (no duplicated boundary timestamps)
+    rows = []
+    for s, e, m in intervals:
+        days = pd.date_range(s, e - pd.Timedelta(days=1), freq="D")
+        base = {"stage": m["label"]}
+        if "color" in m: base["color"] = m["color"]
+        for d in days:
+            row = {"time": d.to_pydatetime(), **base}
+            for k in thresh_keys:
+                row[k] = m.get(k)
+            rows.append(row)
+
+    if not rows:
+        return pl.DataFrame({"time": [], "stage": [], "metric": [], "value": []})
+
+    df = pl.DataFrame(rows)
+
+    # Long form: time | stage | [color] | metric | value
+    id_cols = ["time", "stage"] + (["color"] if "color" in df.columns else [])
+    return df.unpivot(
+        index=id_cols,
+        on=thresh_keys,
+        variable_name="metric",
+        value_name="value",
+    )
