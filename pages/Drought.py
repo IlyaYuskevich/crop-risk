@@ -5,7 +5,6 @@ import fsspec
 from constants.drought import STAGE_MARKERS
 from constants.locations import LOCATIONS
 import plotly.graph_objects as go
-import polars as pl
 
 from constants.utils import stage_bands_daily
 
@@ -17,12 +16,7 @@ storage = {"anon": False, "key": st.secrets.get("AWS_ACCESS_KEY_ID"),
 
 mapper = fsspec.get_mapper(f"s3://{BUCKET}/{ZARR}", s3=storage)
 
-@st.cache_data(show_spinner=False)
-def open_ds():
-    # If you wrote Zarr v2 + consolidated metadata, this is optimal
-    return xr.open_zarr(mapper, consolidated=True)
-
-ds = open_ds()
+ds = xr.open_zarr(mapper, consolidated=True)
 
 locations_hashmap: dict[str, dict[str, float]] = {l["label"]: {k: l[k] for k in ("lat", "lon")} for l in LOCATIONS}
 region_options: list[str] = list(locations_hashmap.keys())
