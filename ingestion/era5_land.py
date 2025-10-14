@@ -1,18 +1,18 @@
 import cdsapi, fsspec, zipfile, xarray as xr
 
 BUCKET = "nala-crop-risks"
-ZARR   = "era5-land/volumetric_soil_water_3_2024.zarr"
+ZARR   = "era5-land/2m_temperature_min_2025.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-era5-land-daily-statistics"
 request = {
     "variable": [
-        # "2m_temperature",
+        "2m_temperature",
         # "volumetric_soil_water_layer_1",
         # "volumetric_soil_water_layer_2",
-        "volumetric_soil_water_layer_3",
+        # "volumetric_soil_water_layer_3",
         ],
-    "year": "2024",
+    "year": "2025",
     "month": [
         "01", "02", "03",
         "04", "05", "06",
@@ -32,7 +32,7 @@ request = {
         "28", "29", "30",
         "31"
     ],
-    "daily_statistic": "daily_mean",
+    "daily_statistic": "daily_minimum",
     "time_zone": "utc+00:00",
     "frequency": "1_hourly",
     "area": [72, -12, 32, 48]
