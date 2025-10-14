@@ -1,7 +1,7 @@
 import cdsapi, fsspec, zipfile, xarray as xr
 
 BUCKET = "nala-crop-risks"
-ZARR   = "era5-land/2m_temperature_min_2025.zarr"
+ZARR   = "era5-land/2m_temperature_min_2023.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-era5-land-daily-statistics"
@@ -12,7 +12,7 @@ request = {
         # "volumetric_soil_water_layer_2",
         # "volumetric_soil_water_layer_3",
         ],
-    "year": "2025",
+    "year": "2023",
     "month": [
         "01", "02", "03",
         "04", "05", "06",

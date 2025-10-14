@@ -4,9 +4,10 @@ import fsspec
 import streamlit as st
 import plotly.graph_objects as go
 
-from constants.crops import CROP_SPECIES
+from components.crop_select import add_crop_select
+from components.region_select import add_region_select
+from components.year_select import add_year_select
 from constants.heat import STAGE_MARKERS
-from constants.locations import LOCATIONS
 from data_transformations.heat import calc_heat_wave_alerts
 import streamlit.components.v1 as components
 
@@ -20,42 +21,11 @@ storage = {
     "client_kwargs": {"region_name": "eu-central-1"},
 }
 
+region_sel, locations_hashmap = add_region_select()
+year_sel = add_year_select() 
+crop_sel = add_crop_select()
 
-locations_hashmap: dict[str, dict[str, float]] = {
-    l["label"]: {k: l[k] for k in ("lat", "lon")} for l in LOCATIONS
-}
-
-region_options: list[str] = list(locations_hashmap.keys())
-year_options: list[int] = list(range(2023, 2027))
-crop_options: list[str] = CROP_SPECIES
-
-params = st.query_params
-raw_region = params.get("region")
-raw_year = params.get("year")
-raw_crop = params.get("crop")
-
-default_region = raw_region if raw_region in region_options else region_options[0]
-default_year = raw_year if raw_year in year_options else year_options[0]
-raw_crop = raw_crop if raw_crop in crop_options else crop_options[0]
-
-region_sel = st.sidebar.selectbox(
-    "Region",
-    region_options,
-    index=region_options.index(region_options[0]),
-)
-year_sel = int(st.sidebar.selectbox("Crop year", year_options, index=len(year_options) - 1))
-crop_sel = st.sidebar.selectbox("Crop species", crop_options, index=len(crop_options)-1).lower()
-
-if region_sel != raw_region:
-    params["region"] = region_sel
-    
-if year_sel != raw_year:
-    params["year"] = year_sel
-
-if crop_sel != raw_crop:
-    params["crop"] = crop_sel
-
-st.set_page_config(f"{default_region} | Air Temp", layout="wide")
+st.set_page_config(f"{region_sel} | Air Temp", layout="wide")
 
 season_start = f"{year_sel - 1}-09-01"
 season_end = f"{year_sel}-09-01"
