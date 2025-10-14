@@ -1,0 +1,1 @@
+CROP_SPECIES = ["Wheat", "Bilberry"]

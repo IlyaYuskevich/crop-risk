@@ -4,6 +4,7 @@ import fsspec
 import streamlit as st
 import plotly.graph_objects as go
 
+from constants.crops import CROP_SPECIES
 from constants.heat import STAGE_MARKERS
 from constants.locations import LOCATIONS
 from data_transformations.heat import calc_heat_wave_alerts
@@ -23,44 +24,52 @@ storage = {
 locations_hashmap: dict[str, dict[str, float]] = {
     l["label"]: {k: l[k] for k in ("lat", "lon")} for l in LOCATIONS
 }
+
 region_options: list[str] = list(locations_hashmap.keys())
+year_options: list[int] = list(range(2023, 2027))
+crop_options: list[str] = CROP_SPECIES
 
 params = st.query_params
 raw_region = params.get("region")
+raw_year = params.get("year")
+raw_crop = params.get("crop")
 
 default_region = raw_region if raw_region in region_options else region_options[0]
+default_year = raw_year if raw_year in year_options else year_options[0]
+raw_crop = raw_crop if raw_crop in crop_options else crop_options[0]
 
 region_sel = st.sidebar.selectbox(
     "Region",
     region_options,
     index=region_options.index(region_options[0]),
 )
-
-st.set_page_config(f"{default_region} | Air Temp", layout="wide")
+year_sel = int(st.sidebar.selectbox("Crop year", year_options, index=len(year_options) - 1))
+crop_sel = st.sidebar.selectbox("Crop species", crop_options, index=len(crop_options)-1).lower()
 
 if region_sel != raw_region:
-    try:
-        params["region"] = region_sel
-    except TypeError:
-        st.experimental_set_query_params(region=region_sel)
+    params["region"] = region_sel
+    
+if year_sel != raw_year:
+    params["year"] = year_sel
 
+if crop_sel != raw_crop:
+    params["crop"] = crop_sel
 
-agri_years: list[int] = list(range(2023, 2027))
-year_sel = int(st.sidebar.selectbox("Crop year", agri_years, index=len(agri_years) - 1))
+st.set_page_config(f"{default_region} | Air Temp", layout="wide")
 
 season_start = f"{year_sel - 1}-09-01"
 season_end = f"{year_sel}-09-01"
 # Open previous + current crop-year Zarrs and concatenate along time (graceful if one is missing)
 years = [year_sel - 1, year_sel]
 dss: list[xr.Dataset] = []
-for y in years:
+for yr in years:
     mapper = fsspec.get_mapper(
-        f"s3://{BUCKET}/era5-land/2m_temperature_max_{y}.zarr", s3=storage
+        f"s3://{BUCKET}/era5-land/2m_temperature_max_{yr}.zarr", s3=storage
     )
     try:
         dss.append(xr.open_zarr(mapper, consolidated=True))
     except Exception as e:
-        print(f"[heat] missing or unreadable store for {y}: {e}")
+        print(f"[heat] missing or unreadable store for {yr}: {e}")
         continue
 
 if not dss:
@@ -86,7 +95,6 @@ ds = ds.rename(
         if k in ds.dims or k in ds.coords or k in ds.variables
     }
 )
-print(ds)
 pt = (
     ds["t2m"]
     .sel(locations_hashmap[region_sel], method="nearest")
@@ -101,19 +109,17 @@ fig = go.Figure()
 
 threshold_cols = ["dry_critical", "dry_warn", "wet_warn", "wet_critical"]
 threshold_cols.reverse()
-threshold_df = stage_bands_daily(ts.index, STAGE_MARKERS)
+threshold_df = stage_bands_daily(ts.index, STAGE_MARKERS[crop_sel])
 
-wide = threshold_df.pivot(index="time", on="metric", values="value").sort("time")
-
-x = wide["time"].to_list()
-cols = set(wide.columns)
+thresholds_t = threshold_df["time"].to_list()
+cols = set(threshold_df.columns)
 
 
-def y(bound):
+def thresholds(bound):
     if isinstance(bound, (int, float)):  # constant baseline
-        return [float(bound)] * len(x)
+        return [float(bound)] * len(thresholds_t)
     if bound in cols:
-        return wide[bound].to_list()
+        return threshold_df[bound].to_list()
     return None  # missing metric -> skip band
 
 
@@ -149,13 +155,13 @@ BANDS = {
 }
 
 for name, cfg in BANDS.items():
-    ylo, yhi = y(cfg["lo"]), y(cfg["hi"])
+    ylo, yhi = thresholds(cfg["lo"]), thresholds(cfg["hi"])
     if ylo is None or yhi is None:
         continue
     # lower (invisible) → upper (filled to previous)
     fig.add_trace(
         go.Scatter(
-            x=x,
+            x=thresholds_t,
             y=ylo,
             mode="lines",
             line=dict(width=0),
@@ -171,7 +177,7 @@ for name, cfg in BANDS.items():
     fig.add_trace(
         go.Scatter(
             name=name,
-            x=x,
+            x=thresholds_t,
             y=yhi,
             mode="lines",
             line=line_style,
@@ -249,7 +255,7 @@ fig.update_layout(
 )
 
 annotation_y = y_range[1] - 1
-for stage in STAGE_MARKERS:
+for stage in STAGE_MARKERS[crop_sel]:
     stage_year = year_sel + stage["year_offset"]
     stage_date = date(stage_year, stage["start_month"], stage["start_day"])
     fig.add_vline(
@@ -288,3 +294,4 @@ fig.update_xaxes(
 
 
 st.plotly_chart(fig, use_container_width=True)
+st.dataframe(ts, use_container_width=True)

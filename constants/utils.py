@@ -17,7 +17,7 @@ def stage_bands_daily(time_coord, markers) -> pl.DataFrame:
     # Detect threshold keys (everything not in BASE_KEYS)
     thresh_keys = sorted(set().union(*(set(m.keys()) for m in markers)) - BASE_KEYS)
     if not thresh_keys:
-        return pl.DataFrame({"time": [], "stage": [], "metric": [], "value": []})
+        return pl.DataFrame({"time": [], "stage": [], "value": []})
 
     # Build stage starts for years spanning the window (pad by one year before to cover pre-t0 stage)
     years = range(t0.year - 1, t1.year + 1 + 1)  # include t1.year+1 for the final boundary
@@ -50,15 +50,6 @@ def stage_bands_daily(time_coord, markers) -> pl.DataFrame:
             rows.append(row)
 
     if not rows:
-        return pl.DataFrame({"time": [], "stage": [], "metric": [], "value": []})
+        return pl.DataFrame({"time": [], "stage": [], "value": []})
 
-    df = pl.DataFrame(rows)
-
-    # Long form: time | stage | [color] | metric | value
-    id_cols = ["time", "stage"] + (["color"] if "color" in df.columns else [])
-    return df.unpivot(
-        index=id_cols,
-        on=thresh_keys,
-        variable_name="metric",
-        value_name="value",
-    )
+    return pl.DataFrame(rows)

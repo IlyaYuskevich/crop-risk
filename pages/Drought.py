@@ -3,10 +3,13 @@ import xarray as xr
 import streamlit as st
 import fsspec
 from constants.drought import STAGE_MARKERS
+from constants.crops import CROP_SPECIES
 from constants.locations import LOCATIONS
 import plotly.graph_objects as go
 
 from constants.utils import stage_bands_daily
+
+st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Drought")
 
 BUCKET = "nala-crop-risks"
 ZARR   = "era5-drought/spei_1-3-6_2023-2025.zarr"
@@ -20,15 +23,34 @@ ds = xr.open_zarr(mapper, consolidated=True)
 
 locations_hashmap: dict[str, dict[str, float]] = {l["label"]: {k: l[k] for k in ("lat", "lon")} for l in LOCATIONS}
 region_options: list[str] = list(locations_hashmap.keys())
+year_options: list[int] = list(range(2023, 2026))
+crop_options: list[str] = CROP_SPECIES
+
+params = st.query_params
+raw_region = params.get("region")
+raw_year = params.get("year")
+raw_crop = params.get("crop")
+
+default_region = raw_region if raw_region in region_options else region_options[0]
+default_year = raw_year if raw_year in year_options else year_options[0]
+raw_crop = raw_crop if raw_crop in crop_options else crop_options[0]
 
 region_sel = st.sidebar.selectbox(
     "Region",
     region_options,
     index=region_options.index(region_options[0]),
 )
+year_sel = int(st.sidebar.selectbox("Crop year", year_options, index=len(year_options) - 1))
+crop_sel = st.sidebar.selectbox("Crop species", crop_options, index=len(crop_options)-1).lower()
 
-agri_years: list[int] = list(range(2024, 2026))
-year_sel = int(st.sidebar.selectbox("Crop year", agri_years, index=len(agri_years)-1))
+if region_sel != raw_region:
+    params["region"] = region_sel
+    
+if year_sel != raw_year:
+    params["year"] = year_sel
+
+if crop_sel != raw_crop:
+    params["crop"] = crop_sel
 
 season_start = f"{year_sel - 1}-09-01"
 season_end = f"{year_sel}-09-01"
@@ -42,20 +64,16 @@ fig = go.Figure()
 
 threshold_cols = ["dry_critical", "dry_warn", "wet_warn", "wet_critical"]
 threshold_cols.reverse()
-threshold_df = stage_bands_daily(ts.index, STAGE_MARKERS) 
+threshold_df = stage_bands_daily(ts.index, STAGE_MARKERS[crop_sel]) 
 
-wide = (threshold_df
-        .pivot(index="time", on="metric", values="value")
-        .sort("time"))
+thresholds_t = threshold_df["time"].to_list()
+cols = set(threshold_df.columns)
 
-x = wide["time"].to_list()
-cols = set(wide.columns)
-
-def y(bound):
+def thresholds(bound):
     if isinstance(bound, (int, float)):  # constant baseline
-        return [float(bound)] * len(x)
+        return [float(bound)] * len(thresholds_t)
     if bound in cols:
-        return wide[bound].to_list()
+        return threshold_df[bound].to_list()
     return None  # missing metric -> skip band
 
 # Band configuration (hashmap). Order matters for correct tonexty fills.
@@ -68,16 +86,16 @@ BANDS = {
 }
 
 for name, cfg in BANDS.items():
-    ylo, yhi = y(cfg["lo"]), y(cfg["hi"])
+    ylo, yhi = thresholds(cfg["lo"]), thresholds(cfg["hi"])
     if ylo is None or yhi is None:
         continue
     # lower (invisible) → upper (filled to previous)
-    fig.add_trace(go.Scatter(x=x, y=ylo, mode="lines",
+    fig.add_trace(go.Scatter(x=thresholds_t, y=ylo, mode="lines",
                              line=dict(width=0), hoverinfo="skip", showlegend=False))
     line_style = dict(color=cfg["line"], width=1, dash="dot") if cfg.get("line") else dict(width=0)
     fig.add_trace(go.Scatter(
         name=name,
-        x=x, y=yhi, mode="lines",
+        x=thresholds_t, y=yhi, mode="lines",
         line=line_style,
         fill="tonexty", fillcolor=cfg["fill"],
         hoverinfo="skip", showlegend=False
@@ -151,7 +169,7 @@ fig.update_yaxes(range=y_range, showline=True, title=dict(font=dict(size=20)))
 
 
 annotation_y = y_range[1] - 1
-for stage in STAGE_MARKERS:
+for stage in STAGE_MARKERS[crop_sel]:
     stage_year = year_sel + stage["year_offset"]
     stage_date = date(stage_year, stage["start_month"], stage["start_day"])
     if date.fromisoformat(season_start) <= stage_date <= date.fromisoformat(season_end):
