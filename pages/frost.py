@@ -20,6 +20,7 @@ storage = {
     "client_kwargs": {"region_name": "eu-central-1"},
 }
 
+
 region_sel, locations_hashmap = add_region_select()
 year_sel = add_year_select()
 crop_sel = add_crop_select()
