@@ -6,9 +6,8 @@ from components.crop_select import add_crop_select
 from components.region_select import add_region_select
 from components.timeseries_chart import add_timeseries_chart
 from components.year_select import add_year_select
+from constants.crops import SEASON_BOUNDARIES
 from constants.soil_moisture import STAGE_MARKERS, BANDS
-
-from constants.utils import stage_bands_daily
 
 st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Soil Moisture 3")
 
@@ -26,8 +25,9 @@ region_sel, locations_hashmap = add_region_select()
 year_sel = add_year_select() 
 crop_sel = add_crop_select()
 
-season_start = date(year_sel - 1, 9, 1)
-season_end = date(year_sel, 9, 2)
+season = SEASON_BOUNDARIES[crop_sel]
+season_start = date(year_sel - 1, season["start_month"], season["start_day"])
+season_end = date(year_sel, season["end_month"], season["end_day"])
 # Open previous + current crop-year Zarrs and concatenate along time (graceful if one is missing)
 years = [year_sel - 1, year_sel]
 dss: list[xr.Dataset] = []

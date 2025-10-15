@@ -149,9 +149,9 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Leaf Senescence",
+            "label": "Post-Harvest Hardening",
             "start_month": 9,
-            "start_day": 1,
+            "start_day": 15,
             "thresholds": {
                 "dry_warn": -1.4,
                 "dry_critical": -2.0,

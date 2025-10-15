@@ -10,7 +10,6 @@ from components.timeseries_chart import add_timeseries_chart
 from components.year_select import add_year_select
 from constants.crops import SEASON_BOUNDARIES
 from constants.frost import BANDS, STAGE_MARKERS
-from constants.utils import stage_bands_daily
 
 BUCKET = "nala-crop-risks"
 storage = {
@@ -19,7 +18,6 @@ storage = {
     "secret": st.secrets.get("AWS_SECRET_ACCESS_KEY"),
     "client_kwargs": {"region_name": "eu-central-1"},
 }
-
 
 region_sel, locations_hashmap = add_region_select()
 year_sel = add_year_select()
