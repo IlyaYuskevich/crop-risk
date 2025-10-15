@@ -1,9 +1,12 @@
 import pandas as pd
 import polars as pl
 
+from app_types.types import CropStage
+
 BASE_KEYS = {"label", "start_month", "start_day", "color"}
 
-def stage_bands_daily(time_coord, markers) -> pl.DataFrame:
+
+def stage_bands_daily(time_coord: pd.Index, markers: list[CropStage]) -> pl.DataFrame:
     """
     Build a daily (1D) long-form frame of thresholds over [t0, t1] from stage markers.
     - Generic: any threshold keys (e.g., dry/wet or temps) are detected automatically.
@@ -14,15 +17,15 @@ def stage_bands_daily(time_coord, markers) -> pl.DataFrame:
     t0 = pd.Timestamp(pd.to_datetime(time_coord.values[0])).normalize()
     t1 = pd.Timestamp(pd.to_datetime(time_coord.values[-1])).normalize()
 
-    # Detect threshold keys (everything not in BASE_KEYS)
-    thresh_keys = sorted(set().union(*(set(m.keys()) for m in markers)) - BASE_KEYS)
-    if not thresh_keys:
-        return pl.DataFrame({"time": [], "stage": [], "value": []})
-
     # Build stage starts for years spanning the window (pad by one year before to cover pre-t0 stage)
-    years = range(t0.year - 1, t1.year + 1 + 1)  # include t1.year+1 for the final boundary
-    starts = [(pd.Timestamp(y, m["start_month"], m["start_day"]), m)
-              for y in years for m in markers]
+    years = range(
+        t0.year - 1, t1.year + 1 + 1
+    )  # include t1.year+1 for the final boundary
+    starts = [
+        (pd.Timestamp(y, m["start_month"], m["start_day"]), m)
+        for y in years
+        for m in markers
+    ]
     starts.sort(key=lambda x: x[0])
 
     # Keep only intervals that might intersect [t0, t1]
@@ -42,14 +45,15 @@ def stage_bands_daily(time_coord, markers) -> pl.DataFrame:
     for s, e, m in intervals:
         days = pd.date_range(s, e - pd.Timedelta(days=1), freq="D")
         base = {"stage": m["label"]}
-        if "color" in m: base["color"] = m["color"]
+        if "color" in m:
+            base["color"] = m["color"]
         for d in days:
             row = {"time": d.to_pydatetime(), **base}
-            for k in thresh_keys:
-                row[k] = m.get(k)
+            for k in markers[0]["thresholds"].keys():
+                row[k] = m["thresholds"].get(k)
             rows.append(row)
 
     if not rows:
         return pl.DataFrame({"time": [], "stage": [], "value": []})
-
+    
     return pl.DataFrame(rows)

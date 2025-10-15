@@ -10,7 +10,7 @@ from constants.soil_moisture import STAGE_MARKERS, BANDS
 
 from constants.utils import stage_bands_daily
 
-st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Soil Moisture 3")
+st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Soil Moisture")
 
 BUCKET = "nala-crop-risks"
 ZARR   = "era5-land/volumetric_soil_water_3_2024.zarr"
@@ -33,16 +33,16 @@ years = [year_sel - 1, year_sel]
 dss: list[xr.Dataset] = []
 for yr in years:
     mapper = fsspec.get_mapper(
-        f"s3://{BUCKET}/era5-land/volumetric_soil_water_3_{yr}.zarr", s3=storage
+        f"s3://{BUCKET}/era5-land/volumetric_soil_water_2_{yr}.zarr", s3=storage
     )
     try:
         dss.append(xr.open_zarr(mapper, consolidated=True))
     except Exception as e:
-        print(f"[soil moisture-3] missing or unreadable store for {yr}: {e}")
+        print(f"[soil moisture-2] missing or unreadable store for {yr}: {e}")
         continue
 
 if not dss:
-    st.warning("No ERA5-Land soil moisture (Level 3) data found for the selected crop year(s).")
+    st.warning("No ERA5-Land soil moisture (Level 2) data found for the selected crop year(s).")
     st.stop()
 elif len(dss) == 1:
     ds = dss[0]
@@ -65,7 +65,7 @@ ds = ds.rename(
     }
 )
 pt = (
-    ds["swvl3"]
+    ds["swvl2"]
     .sel(locations_hashmap[region_sel], method="nearest")
     .sel(time=slice(season_start, season_end))
 )
@@ -85,9 +85,9 @@ add_timeseries_chart(
     STAGE_MARKERS,
     {
         "y_title": None,
-        "chart_title": "Volumetric soil water layer 3 (28 - 100cm)",
-        "hovertemplate": "Date: %{x|%Y-%m-%d}<br>swvl3: %{y:.2f}<extra></extra>",
-        "line_legend_label": "Volumetric soil water layer 3",
+        "chart_title": "Volumetric soil water layer 2 (7 - 28cm)",
+        "hovertemplate": "Date: %{x|%Y-%m-%d}<br>swvl2: %{y:.2f}<extra></extra>",
+        "line_legend_label": "Volumetric soil water layer 2",
     },
 )
 

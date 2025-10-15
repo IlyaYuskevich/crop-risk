@@ -1,24 +1,23 @@
-import cdsapi, fsspec, zipfile, xarray as xr
+import zipfile
+
+import cdsapi
+import fsspec
+import xarray as xr
 
 BUCKET = "nala-crop-risks"
-ZARR   = "era5-land/2m_temperature_min_2023.zarr"
+ZARR = "era5-land/volumetric_soil_water_2_2023.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-era5-land-daily-statistics"
 request = {
     "variable": [
-        "2m_temperature",
+        # "2m_temperature",
         # "volumetric_soil_water_layer_1",
-        # "volumetric_soil_water_layer_2",
+        "volumetric_soil_water_layer_2",
         # "volumetric_soil_water_layer_3",
-        ],
-    "year": "2023",
-    "month": [
-        "01", "02", "03",
-        "04", "05", "06",
-        "07", "08", "09",
-        "10", "11", "12"
     ],
+    "year": "2023",
+    "month": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
     "day": [
         "01", "02", "03",
         "04", "05", "06",
@@ -32,10 +31,28 @@ request = {
         "28", "29", "30",
         "31"
     ],
-    "daily_statistic": "daily_minimum",
+    # "day": [
+    #     "01",
+    #     "03",
+    #     "05",
+    #     "07",
+    #     "09",
+    #     "11",
+    #     "13",
+    #     "15",
+    #     "17",
+    #     "19",
+    #     "21",
+    #     "23",
+    #     "25",
+    #     "27",
+    #     "29",
+    #     "31",
+    # ],
+    "daily_statistic": "daily_mean",
     "time_zone": "utc+00:00",
     "frequency": "1_hourly",
-    "area": [72, -12, 32, 48]
+    "area": [72, -12, 32, 48],
 }
 
 c = cdsapi.Client()
@@ -47,6 +64,7 @@ local_path = res.download("/tmp/era5l")  # cdsapi will add the correct extension
 
 # Create the Zarr store (append on 'time')
 mapper = fsspec.get_mapper(f"s3://{BUCKET}/{ZARR}", s3=storage)
+
 
 def _time_dim(ds):
     if "valid_time" in ds.dims:
@@ -90,5 +108,6 @@ else:
 
 # consolidate metadata → O(1) opens (v2 only)
 import zarr as z
+
 z.consolidate_metadata(mapper)
 print(f"s3://{BUCKET}/{ZARR}")

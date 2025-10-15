@@ -1,7 +1,13 @@
-import cdsapi, requests, fsspec, zipfile, io, xarray as xr
+import io
+import zipfile
+
+import cdsapi
+import fsspec
+import requests
+import xarray as xr
 
 BUCKET = "nala-crop-risks"
-ZARR   = "era5-drought/spei_1-3-6_2023-2025.zarr"
+ZARR = "era5-drought/spei_1-3-6_2023-2025.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-drought-historical-monthly"
@@ -16,13 +22,8 @@ request = {
     "product_type": ["reanalysis"],
     "dataset_type": "intermediate_dataset",
     "year": [str(yr) for yr in range(2023, 2026)],
-    "month": [
-        "01", "02", "03",
-        "04", "05", "06",
-        "07", "08", "09",
-        "10", "11", "12"
-    ],
-    "area": [72, -12, 32, 48] # Europe only; comment out for global
+    "month": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
+    "area": [72, -12, 32, 48],  # Europe only; comment out for global
 }
 
 c = cdsapi.Client()
@@ -57,5 +58,6 @@ with requests.get(url, stream=True) as r:
 
 # consolidate metadata → O(1) opens (v2 only)
 import zarr as z
+
 z.consolidate_metadata(mapper)
 print(f"s3://{BUCKET}/{ZARR}")
