@@ -50,7 +50,7 @@ STAGE_MARKERS: CropToStages = {
             "label": "Winter Dormancy",
             "start_month": 11,
             "start_day": 1,
-            "thresholds": {"warn_temp": -20, "alert_temp": -40, "high_temp": -5},
+            "thresholds": {"warn_temp": -20, "alert_temp": -40, "high_temp": 0},
             "color": "#6c757d",
         },
         {
@@ -78,14 +78,14 @@ STAGE_MARKERS: CropToStages = {
             "label": "Fruit set & Growth",
             "start_month": 6,
             "start_day": 15,
-            "thresholds": {"warn_temp": 0, "alert_temp": -40, "high_temp": 20},
+            "thresholds": {"warn_temp": 0, "alert_temp": -5, "high_temp": 20},
             "color": "#6c757d",
         },
         {
             "label": "Harvest",
             "start_month": 8,
             "start_day": 15,
-            "thresholds": {"warn_temp": 0, "alert_temp": -40, "high_temp": 20},
+            "thresholds": {"warn_temp": 0, "alert_temp": -5, "high_temp": 20},
             "color": "#6c757d",
         },
         {

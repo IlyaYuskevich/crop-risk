@@ -5,18 +5,18 @@ import fsspec
 import xarray as xr
 
 BUCKET = "nala-crop-risks"
-ZARR = "era5-land/volumetric_soil_water_2_2023.zarr"
+ZARR = "era5-land/volumetric_soil_water_1_2025.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-era5-land-daily-statistics"
 request = {
     "variable": [
         # "2m_temperature",
-        # "volumetric_soil_water_layer_1",
-        "volumetric_soil_water_layer_2",
+        "volumetric_soil_water_layer_1",
+        # "volumetric_soil_water_layer_2",
         # "volumetric_soil_water_layer_3",
     ],
-    "year": "2023",
+    "year": "2025",
     "month": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
     "day": [
         "01", "02", "03",

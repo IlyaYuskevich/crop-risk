@@ -8,6 +8,7 @@ from components.crop_select import add_crop_select
 from components.region_select import add_region_select
 from components.timeseries_chart import add_timeseries_chart
 from components.year_select import add_year_select
+from constants.crops import SEASON_BOUNDARIES
 from constants.frost import BANDS, STAGE_MARKERS
 from constants.utils import stage_bands_daily
 
@@ -25,8 +26,9 @@ crop_sel = add_crop_select()
 
 st.set_page_config(f"{region_sel} | Low Temperatures", layout="wide")
 
-season_start = date(year_sel - 1, 9, 1)
-season_end = date(year_sel, 9, 1)
+season = SEASON_BOUNDARIES[crop_sel]
+season_start = date(year_sel - 1, season["start_month"], season["start_day"])
+season_end = date(year_sel, season["end_month"], season["end_day"])
 # Open previous + current crop-year Zarrs and concatenate along time (graceful if one is missing)
 years = [year_sel - 1, year_sel]
 dss: list[xr.Dataset] = []
