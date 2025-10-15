@@ -8,7 +8,7 @@ from components.crop_select import add_crop_select
 from components.region_select import add_region_select
 from components.timeseries_chart import add_timeseries_chart
 from components.year_select import add_year_select
-from constants.heat import BANDS, STAGE_MARKERS
+from constants.frost import BANDS, STAGE_MARKERS
 from constants.utils import stage_bands_daily
 
 BUCKET = "nala-crop-risks"
@@ -23,7 +23,7 @@ region_sel, locations_hashmap = add_region_select()
 year_sel = add_year_select()
 crop_sel = add_crop_select()
 
-st.set_page_config(f"{region_sel} | Air Temp", layout="wide")
+st.set_page_config(f"{region_sel} | Low Temperatures", layout="wide")
 
 season_start = date(year_sel - 1, 9, 1)
 season_end = date(year_sel, 9, 1)
@@ -32,7 +32,7 @@ years = [year_sel - 1, year_sel]
 dss: list[xr.Dataset] = []
 for yr in years:
     mapper = fsspec.get_mapper(
-        f"s3://{BUCKET}/era5-land/2m_temperature_max_{yr}.zarr", s3=storage
+        f"s3://{BUCKET}/era5-land/2m_temperature_min_{yr}.zarr", s3=storage
     )
     try:
         dss.append(xr.open_zarr(mapper, consolidated=True))
@@ -71,7 +71,7 @@ pt = (
 ts = pt.to_series()
 ts = ts - 273.15
 x_range = (season_start, season_end)
-y_range = (-10, 40)
+y_range = (-20, 40)
 
 # ---- Plot ----
 add_timeseries_chart(
@@ -85,9 +85,9 @@ add_timeseries_chart(
     STAGE_MARKERS,
     {
         "y_title": "°C",
-        "chart_title": "Heat Stress",
-        "hovertemplate": "Date: %{x|%Y-%m-%d}<br>Temperature: %{y:.1f}°C",
-        "line_legend_label": "Max air temperature (3-day mean)",
+        "chart_title": "Frost",
+        "hovertemplate": "Date: %{x|%Y-%m-%d}<br>Temperature: %{y:.1f}°C<extra></extra>",
+        "line_legend_label": "Min air temperature (3-day mean)",
     },
 )
 

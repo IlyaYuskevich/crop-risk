@@ -77,7 +77,7 @@ STAGE_MARKERS: CropToStages = {
     ],
     "Bilberry": [
         {
-            "label": "Dormancy",
+            "label": "Winter Dormancy",
             "start_month": 11,
             "start_day": 1,
             "thresholds": {
@@ -89,8 +89,8 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Bud Swelling \n& Leaf Emergence",
-            "start_month": 3,
+            "label": "Bud Swell",
+            "start_month": 4,
             "start_day": 1,
             "thresholds": {
                 "dry_warn": -0.3,
@@ -101,8 +101,8 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Flowering",
-            "start_month": 4,
+            "label": "Leaf Emergence",
+            "start_month": 5,
             "start_day": 1,
             "thresholds": {
                 "dry_warn": -0.2,
@@ -113,9 +113,21 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Fruit set",
+            "label": "Flowering & Bloom",
             "start_month": 5,
-            "start_day": 1,
+            "start_day": 15,
+            "thresholds": {
+                "dry_warn": -0.2,
+                "dry_critical": -0.8,
+                "wet_warn": 0.6,
+                "wet_critical": 1.0,
+            },
+            "color": "#6c757d",
+        },
+        {
+            "label": "Fruit set & Growth",
+            "start_month": 6,
+            "start_day": 15,
             "thresholds": {
                 "dry_warn": -0.3,
                 "dry_critical": -0.9,
@@ -125,20 +137,8 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Berry growth & Ripening",
-            "start_month": 6,
-            "start_day": 1,
-            "thresholds": {
-                "dry_warn": -0.5,
-                "dry_critical": -1.0,
-                "wet_warn": 0.6,
-                "wet_critical": 1.0,
-            },
-            "color": "#6c757d",
-        },
-        {
             "label": "Harvest",
-            "start_month": 7,
+            "start_month": 8,
             "start_day": 15,
             "thresholds": {
                 "dry_warn": -0.3,

@@ -154,7 +154,7 @@ def add_timeseries_chart(
                     ),
             ])
 
-    annotation_y = y_range[1] - 1
+    annotation_y = y_range[0]
     year_flipped = False
     prev_stage_month: int = 0
     for stage in crop_stages[crop_sel]:
@@ -185,7 +185,6 @@ def add_timeseries_chart(
                 textangle=-90,
                 font=dict(size=14, color=stage["color"]),
                 xshift=4,
-                yshift=-390,
             )
     # Add a year changing grid line
     jan1 = date(year_sel, 1, 1)

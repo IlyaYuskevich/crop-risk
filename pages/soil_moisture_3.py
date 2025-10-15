@@ -85,7 +85,7 @@ add_timeseries_chart(
     STAGE_MARKERS,
     {
         "y_title": None,
-        "chart_title": "Volumetric soil water layer 3 (28 - 100cm)",
+        "chart_title": "Soil moisture (28 - 100cm)",
         "hovertemplate": "Date: %{x|%Y-%m-%d}<br>swvl3: %{y:.2f}<extra></extra>",
         "line_legend_label": "Volumetric soil water layer 3",
     },

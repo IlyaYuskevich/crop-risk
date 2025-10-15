@@ -77,7 +77,7 @@ STAGE_MARKERS: CropToStages = {
     ],
     "Bilberry": [
         {
-            "label": "Dormancy",
+            "label": "Winter Dormancy",
             "start_month": 11,
             "start_day": 1,
             "thresholds": {
@@ -89,19 +89,7 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Bud Swelling \n& Leaf Emergence",
-            "start_month": 3,
-            "start_day": 1,
-            "thresholds": {
-                "dry_warn": 0.2,
-                "dry_critical": 0.1,
-                "wet_warn": 0.8,
-                "wet_critical": 0.9,
-            },
-            "color": "#6c757d",
-        },
-        {
-            "label": "Flowering",
+            "label": "Bud Swell",
             "start_month": 4,
             "start_day": 1,
             "thresholds": {
@@ -113,7 +101,7 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Fruit set",
+            "label": "Leaf Emergence",
             "start_month": 5,
             "start_day": 1,
             "thresholds": {
@@ -125,9 +113,21 @@ STAGE_MARKERS: CropToStages = {
             "color": "#6c757d",
         },
         {
-            "label": "Berry growth & Ripening",
+            "label": "Flowering & Bloom",
+            "start_month": 5,
+            "start_day": 15,
+            "thresholds": {
+                "dry_warn": 0.2,
+                "dry_critical": 0.1,
+                "wet_warn": 0.8,
+                "wet_critical": 0.9,
+            },
+            "color": "#6c757d",
+        },
+        {
+            "label": "Fruit set & Growth",
             "start_month": 6,
-            "start_day": 1,
+            "start_day": 15,
             "thresholds": {
                 "dry_warn": 0.2,
                 "dry_critical": 0.1,
@@ -138,7 +138,7 @@ STAGE_MARKERS: CropToStages = {
         },
         {
             "label": "Harvest",
-            "start_month": 7,
+            "start_month": 8,
             "start_day": 15,
             "thresholds": {
                 "dry_warn": 0.2,

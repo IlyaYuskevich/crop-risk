@@ -4,8 +4,7 @@ from constants.locations import LOCATIONS
 
 
 def add_region_select() -> tuple[str, dict[str, dict[str, float]]]:
-    params = st.query_params
-    raw_region = params.get("region")
+    raw_region = st.query_params.get("region") if st.query_params.get("region") else st.session_state.get("area")
     region_options = [loc["label"] for loc in LOCATIONS]
 
     default_region = raw_region if raw_region in region_options else region_options[1]
@@ -22,10 +21,11 @@ def add_region_select() -> tuple[str, dict[str, dict[str, float]]]:
             region_options,
             format_func=format_option,
             index=region_options.index(default_region),
+            key="region"
         )
     )
     if region_sel != raw_region:
-        params["region"] = region_sel
+        st.query_params["region"] = region_sel
     if region_sel.startswith("====="):
         st.write("Please pick a country, not a region header")
     locations_hashmap: dict[str, dict[str, float]] = {
