@@ -4,19 +4,23 @@ import cdsapi
 import fsspec
 import xarray as xr
 
-BUCKET = "nala-crop-risks"
-ZARR = "era5-land/volumetric_soil_water_1_2023.zarr"
+from app_types.types import WeatherIndicator
+from constants.s3 import BUCKET
+from ingestion.configs import INDICATOR_NAME_TO_CONFIG
+
+indicator_name: WeatherIndicator = "leaf_area_index_low_vegetation"
+year = 2024
+config = INDICATOR_NAME_TO_CONFIG[indicator_name]
+
+ZARR = f"{config['path']}{indicator_name}_{year}.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-era5-land-daily-statistics"
 request = {
     "variable": [
-        # "2m_temperature",
-        "volumetric_soil_water_layer_1",
-        # "volumetric_soil_water_layer_2",
-        # "volumetric_soil_water_layer_3",
+        config["request_var"]
     ],
-    "year": "2023",
+    "year": "2024",
     "month": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
     "day": [
         "01", "02", "03",
@@ -49,7 +53,7 @@ request = {
     #     "29",
     #     "31",
     # ],
-    "daily_statistic": "daily_mean",
+    "daily_statistic": config["request_aggregation"],
     "time_zone": "utc+00:00",
     "frequency": "1_hourly",
     "area": [72, -12, 32, 48],

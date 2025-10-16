@@ -6,13 +6,20 @@ import fsspec
 import requests
 import xarray as xr
 
-BUCKET = "nala-crop-risks"
-ZARR = "era5-drought/spei_1-3-6_2023-2025.zarr"
+from app_types.types import WeatherIndicator
+from constants.s3 import BUCKET
+from ingestion.configs import INDICATOR_NAME_TO_CONFIG
+
+indicator_name: WeatherIndicator = "spei_1-3-6_2023-2025"
+year = 2024
+config = INDICATOR_NAME_TO_CONFIG[indicator_name]
+
+ZARR = f"{config['path']}{indicator_name}_{year}.zarr"
 storage = {"anon": False, "client_kwargs": {"region_name": "eu-central-1"}}
 
 dataset = "derived-drought-historical-monthly"
 request = {
-    "variable": ["standardised_precipitation_evapotranspiration_index"],
+    "variable": [config["request_var"]],
     "accumulation_period": [
         "1",
         # "3",
