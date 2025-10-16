@@ -8,6 +8,7 @@ from components.crop_select import add_crop_select
 from components.region_select import add_region_select
 from components.timeseries_chart import add_timeseries_chart
 from components.year_select import add_year_select
+from constants.crops import SEASON_BOUNDARIES
 from constants.drought import BANDS, STAGE_MARKERS
 
 st.set_page_config(
@@ -31,8 +32,10 @@ region_sel, locations_hashmap = add_region_select()
 year_sel = add_year_select(list(range(2023, 2026)))
 crop_sel = add_crop_select()
 
-season_start = date(year_sel - 1, 9, 1)
-season_end = date(year_sel, 9, 2)
+season = SEASON_BOUNDARIES[crop_sel]
+season_start = date(year_sel - 1, season["start_month"], season["start_day"])
+season_end = date(year_sel, season["end_month"], season["end_day"])
+
 x_range = (season_start, season_end)
 y_range = (-5, 5)
 pt = (

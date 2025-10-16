@@ -18,8 +18,8 @@ SEASON_BOUNDARIES: dict[CropSpecies, Season] = {
         "end_day": 31,
     },
     "Bilberry": {
-        "start_month": 11,
-        "start_day": 1,
+        "start_month": 9,
+        "start_day": 15,
         "end_month": 10,
         "end_day": 31,
     }

@@ -72,7 +72,7 @@ pt = (
 ts = pt.to_series()
 ts = ts - 273.15
 x_range = (season_start, season_end)
-y_range = (-20, 40)
+y_range = (-30, 40)
 
 # ---- Plot ----
 add_timeseries_chart(
